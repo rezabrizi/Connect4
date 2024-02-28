@@ -15,7 +15,6 @@ class ConnectFour:
         return possibleColumns
     
     def MakeMove(self, column):
-        # Simulate making a move for the current player in the given column.
 
         self.board[column].append(self.turn)
         self.turn = (self.turn + 1) % self.players
@@ -23,16 +22,14 @@ class ConnectFour:
 
 
     def UndoMove(self, column):
-        # Remove the last token from the given column and switch the turn back.
         self.board[column].pop()
         self.turn = (self.turn - 1 + self.players) % self.players 
         
-    def IsTerminalNode(self, lastRow = None, lastColumn = None):
-        # Check if the game has ended (win, loss, draw).
+        
+    def IsTerminalNode(self, currentTurn, lastRow = None, lastColumn = None):
         if (lastRow is not None and lastColumn is not None):
-            if (self.__CheckWin(lastRow, lastColumn)):
-                # someone won
-                return self.turn
+            if (self.__CheckWin(lastRow, lastColumn, currentTurn)):
+                return currentTurn
         if all(len(column) == self.m for column in self.board):
             # game is a tie
             return -1
@@ -40,9 +37,7 @@ class ConnectFour:
         return -2 
 
 
-    def EvaluateBoard(self, lastRow = None, lastColumn = None):
-        # Evaluate and return the score of the board.
-        outcome = self.IsTerminalNode(lastRow, lastColumn)
+    def EvaluateBoard(self, outcome):
         if outcome == 1:
             return 10
         elif outcome == 0:
@@ -51,13 +46,14 @@ class ConnectFour:
             return 0
 
 
-    def Minimax(self, depth, isMaximizingPlayer, alpha=float('-inf'), beta=float('inf'), lastColumn=None):
-        # Implement the minimax algorithm.
-        lastRow = len(self.board[lastColumn])-1 if lastColumn is not None else None 
-        terminal_state = self.IsTerminalNode(lastRow, lastColumn)
+    def Minimax(self, depth, isMaximizingPlayer, alpha=float('-inf'), beta=float('inf'), lastColumn=None):      
+        lastRow = len(self.board[lastColumn])-1 if lastColumn is not None else None
+
+        lastTurn = (self.turn-1+self.players) % self.players
+        terminal_state = self.IsTerminalNode(lastTurn, lastRow, lastColumn)
         if (depth == 0 or terminal_state != -2):
-            return self.EvaluateBoard(lastRow, lastColumn)
-        
+            return self.EvaluateBoard(terminal_state)
+
         if isMaximizingPlayer: 
             maxEval = float('-inf')
             for column in self.GeneratePossibleMoves():
@@ -82,11 +78,11 @@ class ConnectFour:
             return maxEval
 
     def GetBestMove(self, depth):
-        # Use the minimax algorithm to find and return the best move.
         bestScore = float('-inf')
         bestMove = None 
+        # this will return a list of columns after the last player made a move
         for column in self.GeneratePossibleMoves():
-            row = self.MakeMove(column)
+            self.MakeMove(column)
             score = self.Minimax(depth-1, False, float('-inf'), float('inf'), column)
             self.UndoMove(column)
             if score > bestScore:
@@ -95,27 +91,27 @@ class ConnectFour:
         return bestMove
 
 
-    def __CheckVerticalWin(self, row, column) -> bool:
+    def __CheckVerticalWin(self, row, column, currentTurn) -> bool:
         if (row < 3):
             return False
         verticalStreak = 0
         for dy in range (4):
             ny = row - dy 
-            if (self.board[column][ny] == self.turn):
+            if (self.board[column][ny] == currentTurn):
                 verticalStreak += 1 
             else: 
                 break
         
         return (verticalStreak == 4)
 
-    def __CheckHorizontalWin(self, row, column) -> bool:
+    def __CheckHorizontalWin(self, row, column, currentTurn) -> bool:
 
         horizontalStreak = 0
         for d in range (-3, 4):
             nx = column + d
 
             if 0 <= nx < self.n and len(self.board[nx]) > row:
-                if self.board[nx][row] == self.turn:
+                if self.board[nx][row] == currentTurn:
                     horizontalStreak += 1
                     if horizontalStreak == 4:
                         return True
@@ -125,7 +121,7 @@ class ConnectFour:
                 horizontalStreak = 0 
         return False
 
-    def __CheckLeftDiagonalWin(self, row, column) -> bool:
+    def __CheckLeftDiagonalWin(self, row, column, currentTurn) -> bool:
 
         leftDiagonalStreak = 0 
         for d in range (-3, 4):
@@ -133,7 +129,7 @@ class ConnectFour:
             nx = column - d 
 
             if 0 <= nx < self.n and 0 <= ny < len(self.board[nx]):
-                if self.board[nx][ny] == self.turn:
+                if self.board[nx][ny] == currentTurn:
                     leftDiagonalStreak += 1
                     if leftDiagonalStreak == 4:
                         return True
@@ -143,14 +139,14 @@ class ConnectFour:
                 leftDiagonalStreak = 0
         return False
 
-    def __CheckRightDiagonalWin(self, row, column) -> bool:
+    def __CheckRightDiagonalWin(self, row, column, currentTurn) -> bool:
         rightDiagonalStreak = 0 
         for d in range (-3, 4):
             ny = row + d 
             nx = column + d 
 
             if 0 <= nx < self.n and 0 <= ny < len(self.board[nx]):
-                if self.board[nx][ny] == self.turn:
+                if self.board[nx][ny] == currentTurn:
                     rightDiagonalStreak += 1
                     if rightDiagonalStreak == 4:
                         return True
@@ -160,8 +156,8 @@ class ConnectFour:
                 rightDiagonalStreak = 0
         return False
 
-    def __CheckWin(self, row, column) -> bool:
-        return self.__CheckVerticalWin (row, column) or self.__CheckHorizontalWin (row, column) or  self.__CheckLeftDiagonalWin (row, column) or self.__CheckRightDiagonalWin (row, column)
+    def __CheckWin(self, row, column, currentTurn) -> bool:
+        return self.__CheckVerticalWin (row, column, currentTurn) or self.__CheckHorizontalWin (row, column, currentTurn) or  self.__CheckLeftDiagonalWin (row, column, currentTurn) or self.__CheckRightDiagonalWin (row, column, currentTurn)
 
     def PlayToken(self, column) -> int:
         
@@ -176,25 +172,27 @@ class ConnectFour:
         self.board[column].append(self.turn)
         row = len(self.board[column])-1
 
-        if (self.__CheckWin(row, column)):
+        if (self.__CheckWin(row, column, self.turn)):
             return self.turn 
 
         self.turn = (self.turn + 1) % self.players
         return -1
     
+    def PrintBoard(self):
+        for row in reversed(range(self.m)):
+            print (' '.join(str(self.board[col][row]) if len(self.board[col]) > row else '.' for col in range(self.n)))
 
-
-def human_vs_bot_game():
-    cf = ConnectFour(6, 7, 2)  # Initializes the Connect Four game
+def play(bot):
+    cf = ConnectFour(6, 7, 2) 
     game_over = False
-    current_player = 0  # Start with the human player
+    current_player = 0  
     
     while not game_over:
-        if current_player == 0:  # Human player's turn
+        if current_player == 0:  
             print("Current board state:")
-            for row in reversed(range(cf.m)):
-                print(' '.join(str(cf.board[col][row]) if len(cf.board[col]) > row else '.' for col in range(cf.n)))
-            column = int(input("Enter your move (1-7): ")) # Human input, adjust for 0-indexed
+            cf.PrintBoard()
+
+            column = int(input("Enter your move (1-7): ")) 
             try:
                 result = cf.PlayToken(column)
                 if result != -1:
@@ -202,24 +200,39 @@ def human_vs_bot_game():
                     game_over = True
             except ValueError as e:
                 print(e)
-                continue  # Ask for input again if there was an error
-        else:  # Bot's turn
+                continue  
+
+        elif (not bot):
+            print("Current board state:")
+            cf.PrintBoard()
+            column = int(input("Enter your move (1-7): "))
+            try: 
+                result = cf.PlayToken(column)
+                if result != -1:
+                    print(f"Player {result} wins!")
+                    game_over = True
+            except ValueError as e: 
+                print(e)
+                continue  
+        
+        else:
             print("Bot is thinking...")
-            best_move = cf.GetBestMove(10) + 1 # You can adjust depth based on difficulty
+            best_move = cf.GetBestMove(10)
+            best_move += 1
             result = cf.PlayToken(best_move)
             print(f"Bot played in column {best_move + 1}")
             if result != -1:
                 print(f"Player {result} wins!")
                 game_over = True
 
-        # Switch turns
         current_player = (current_player + 1) % 2
 
     print("Game over!")
-    # Optionally print the final board state here
+    cf.PrintBoard()
+    
 
 if __name__ == "__main__":
-    human_vs_bot_game()
+    play(True)
 
 
 
