@@ -57,7 +57,7 @@ class ConnectFour:
         if isMaximizingPlayer: 
             maxEval = float('-inf')
             for column in self.GeneratePossibleMoves():
-                row = self.MakeMove(column)
+                self.MakeMove(column)
                 eval = self.Minimax(depth-1, False, alpha, beta, column)
                 self.UndoMove(column)
                 maxEval = max(eval, maxEval)
@@ -68,7 +68,7 @@ class ConnectFour:
         else:
             maxEval = float('inf')
             for column in self.GeneratePossibleMoves():
-                row = self.MakeMove(column)
+                self.MakeMove(column)
                 eval = self.Minimax(depth-1, True, alpha, beta, column)
                 self.UndoMove(column)
                 maxEval = min(eval, maxEval)
@@ -89,7 +89,6 @@ class ConnectFour:
                 bestScore = score
                 bestMove = column
         return bestMove
-
 
     def __CheckVerticalWin(self, row, column, currentTurn) -> bool:
         if (row < 3):
@@ -217,7 +216,7 @@ def play(bot):
         
         else:
             print("Bot is thinking...")
-            best_move = cf.GetBestMove(10)
+            best_move = cf.GetBestMove(11)
             best_move += 1
             result = cf.PlayToken(best_move)
             print(f"Bot played in column {best_move + 1}")
