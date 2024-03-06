@@ -1,13 +1,32 @@
-class ConnectFour:
+'''
+Game board (m x n)
+. . . . . . .
+. . . . . . .
+. . . . . . .
+. . . . . . .
+1 1 . . . . .
+1 0 0 0 . . .
+'''
 
+class ConnectFour:
     def __init__(self, m, n, players):
+        # columns 
         self.n = n
+        # rows
         self.m = m
+        # whose turn it is 
         self.turn = 0
+        # number of players 
         self.players = players
+        # List of Lists ([] * m) for each column as there are m slots in each column 
         self.board = [[] for _ in range(n)]
 
     def GeneratePossibleMoves(self):
+        """Find all possible columns the player can play in 
+
+        Returns:
+            list: columns with less than m tokens
+        """
         possibleColumns = []
         for i in range (self.n):
             if len(self.board[i]) < self.m:
@@ -15,13 +34,25 @@ class ConnectFour:
         return possibleColumns
     
     def MakeMove(self, column):
+        """Insert a token into a column and change the turn
 
+        Args:
+            column (int): the column index (0-based) to insert the current player's token to
+
+        Returns:
+            int: row index (0-based) of the column that was just inserted in
+        """
         self.board[column].append(self.turn)
         self.turn = (self.turn + 1) % self.players
         return len(self.board[column])-1; 
 
 
     def UndoMove(self, column):
+        """Remove a token from the  column specfied and undo the turn
+
+        Args:
+            column (int): index of the column to remove the token from
+        """
         self.board[column].pop()
         self.turn = (self.turn - 1 + self.players) % self.players 
         
@@ -35,15 +66,84 @@ class ConnectFour:
             return -1
         # game is not over
         return -2 
+    
+    def three_token_heuristic (self, turn):
+        count = 0 
+        # Vertical checks of 3s 
+        for column in self.board: 
+            if 3 <= len(column) < self.m:
+                three_vertical_tokens = True 
+                for i in range(3): 
+                    if (column[len(column)-1-i] != turn):
+                        three_vertical_tokens = False
+                        break
+                if three_vertical_tokens: 
+                    count += 10
 
+        
+        # Horizontal Checks
+        for i in range (self.m):
+            for j in range (self.n-3):
+                if len(self.board[j]) > i:
+                    three_horizontal_tokens = True
+                    for k in range(3):
+                        if not (len(self.board[j+k]) > i and self.board[j+k][i] == turn):
+                            three_horizontal_tokens = False
+                            break 
+                    if three_horizontal_tokens:
+                        left_empty = (j > 0 and len(self.board[j-1]) <= i)
+                        right_empty = (j+3 < self.n and len(self.board[j+3]) <= i)
+                        if left_empty or right_empty:
+                            count += 10
+
+        # Diagonal from buttom left to top right 
+        for i in range (self.m-3):
+            for j in range (self.n-3):
+                if len(self.board[j]) > i:
+                    three_left_diagonal_tokens = True
+                    for k in range (3):
+                        dr = i + k 
+                        dc = j + k
+                        if not(len(self.board[dc]) > dr and self.board[dc][dr] == turn):
+                            three_left_diagonal_tokens = False
+                            break 
+                    if three_left_diagonal_tokens:
+                        buttom_left_empty = (i > 0 and j > 0 and len(self.board[j-1]) <= i-1)
+                        top_right_empty = (i+3 < self.m and j+3 < self.n and len(self.board[j+3]) <= i+3)
+                        if buttom_left_empty or top_right_empty:
+                            count += 10
+
+        # Diagonal from top left to buttom right
+        for i in range(self.m-1, 1, -1):
+            for j in range (self.n-3):
+                if len(self.board[j]) > i:
+                    three_right_diagonal_tokens = True
+                    for k in range (3):
+                        dr = i-k
+                        dc = j+k
+                        if not (len(self.board[dc]) > dr and self.board[dc][dr] == turn):
+                            three_right_diagonal_tokens = False
+                            break 
+                    if three_right_diagonal_tokens:
+                        top_left_empty = (i+1 < self.m and j > 0 and len(self.board[j-1]) <= i+1)
+                        buttom_right_empty = (i-3 >= 0 and j+3 < self.n and len(self.board[j+3]) <= i-3)
+                        if top_left_empty or buttom_right_empty:
+                            count += 10   
+        return count                   
+            
 
     def EvaluateBoard(self, outcome):
         if outcome == 1:
-            return 10
+            return 1000
         elif outcome == 0:
-            return -10
-        else:
+            return -1000
+        elif outcome == -1:
             return 0
+        else: 
+            maximizer = self.three_token_heuristic (1)
+            minimizer = -self.three_token_heuristic (0)
+            return maximizer + minimizer
+
 
 
     def Minimax(self, depth, isMaximizingPlayer, alpha=float('-inf'), beta=float('inf'), lastColumn=None):      
@@ -216,15 +316,14 @@ def play(bot):
         
         else:
             print("Bot is thinking...")
-            best_move = cf.GetBestMove(11)
+            best_move = cf.GetBestMove(9)
             best_move += 1
             result = cf.PlayToken(best_move)
-            print(f"Bot played in column {best_move + 1}")
+            print(f"Bot played in column {best_move}")
             if result != -1:
                 print(f"Player {result} wins!")
                 game_over = True
-
-        current_player = (current_player + 1) % 2
+        current_player = (current_player+1) % 2
 
     print("Game over!")
     cf.PrintBoard()
