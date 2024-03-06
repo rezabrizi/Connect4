@@ -21,6 +21,7 @@ class ConnectFour:
         # List of Lists ([] * m) for each column as there are m slots in each column 
         self.board = [[] for _ in range(n)]
 
+
     def GeneratePossibleMoves(self):
         """Find all possible columns the player can play in 
 
@@ -33,6 +34,7 @@ class ConnectFour:
                 possibleColumns.append(i)
         return possibleColumns
     
+
     def MakeMove(self, column):
         """Insert a token into a column and change the turn
 
@@ -57,17 +59,36 @@ class ConnectFour:
         self.turn = (self.turn - 1 + self.players) % self.players 
         
         
-    def IsTerminalNode(self, currentTurn, lastRow = None, lastColumn = None):
+    def IsTerminalNode(self, turn, lastRow = None, lastColumn = None):
+        """Check if we have reached a terminal state (winning or tie)
+
+        Args:
+            turn (int): the turn to check its win
+            lastRow (int, optional): last row that was played. Defaults to None.
+            lastColumn (int, optional): last col that was played. Defaults to None.
+
+        Returns:
+            int: outcome of the current game state
+        """
         if (lastRow is not None and lastColumn is not None):
-            if (self.__CheckWin(lastRow, lastColumn, currentTurn)):
-                return currentTurn
+            if (self.__CheckWin(lastRow, lastColumn, turn)):
+                return turn
         if all(len(column) == self.m for column in self.board):
             # game is a tie
             return -1
         # game is not over
         return -2 
     
+
     def three_token_heuristic (self, turn):
+        """determine if there are three tokens adjacent that can turn into winning states
+
+        Args:
+            turn (int): the turn to check for the heuristic
+
+        Returns:
+            int: three token heuristic score
+        """
         count = 0 
         # Vertical checks of 3s 
         for column in self.board: 
@@ -78,7 +99,7 @@ class ConnectFour:
                         three_vertical_tokens = False
                         break
                 if three_vertical_tokens: 
-                    count += 10
+                    count += 30
 
         
         # Horizontal Checks
@@ -94,7 +115,7 @@ class ConnectFour:
                         left_empty = (j > 0 and len(self.board[j-1]) <= i)
                         right_empty = (j+3 < self.n and len(self.board[j+3]) <= i)
                         if left_empty or right_empty:
-                            count += 10
+                            count += 20
 
         # Diagonal from buttom left to top right 
         for i in range (self.m-3):
@@ -133,6 +154,14 @@ class ConnectFour:
             
 
     def EvaluateBoard(self, outcome):
+        """determine the board score
+
+        Args:
+            outcome (int): current terminality state of the board
+
+        Returns:
+            int: score of the current state of the board 
+        """
         if outcome == 1:
             return 1000
         elif outcome == 0:
@@ -145,8 +174,19 @@ class ConnectFour:
             return maximizer + minimizer
 
 
-
     def Minimax(self, depth, isMaximizingPlayer, alpha=float('-inf'), beta=float('inf'), lastColumn=None):      
+        """Minimax recursive function
+
+        Args:
+            depth (int): current depth of the game tree
+            isMaximizingPlayer (bool): whether the maximizing player is playing or not
+            alpha (int, optional): alpha value used for alpha-beta pruning. Defaults to float('-inf').
+            beta (int, optional): beta value used for alpha-beta pruning. Defaults to float('inf').
+            lastColumn (int, optional): last column that was played. Defaults to None.
+
+        Returns:
+            int: best score of the current player's move
+        """
         lastRow = len(self.board[lastColumn])-1 if lastColumn is not None else None
 
         lastTurn = (self.turn-1+self.players) % self.players
@@ -177,7 +217,16 @@ class ConnectFour:
                     break
             return maxEval
 
+
     def GetBestMove(self, depth):
+        """Determine the next best move for the AI
+
+        Args:
+            depth (int): the depth to exand the game tree to
+
+        Returns:
+            int: the column corresponding to the best move
+        """
         bestScore = float('-inf')
         bestMove = None 
         # this will return a list of columns after the last player made a move
@@ -190,7 +239,18 @@ class ConnectFour:
                 bestMove = column
         return bestMove
 
+
     def __CheckVerticalWin(self, row, column, currentTurn) -> bool:
+        """Check whether a player has won a game vertically
+
+        Args:
+            row (int): the row of the last move
+            column (int): the column of the last move
+            currentTurn (int): the player to check for a win
+
+        Returns:
+            bool: whether there was a vertical win
+        """
         if (row < 3):
             return False
         verticalStreak = 0
@@ -203,8 +263,18 @@ class ConnectFour:
         
         return (verticalStreak == 4)
 
-    def __CheckHorizontalWin(self, row, column, currentTurn) -> bool:
 
+    def __CheckHorizontalWin(self, row, column, currentTurn) -> bool:
+        """Check whether a player has won a game horizontally
+
+        Args:
+            row (int): the row of the last move
+            column (int): the column of the last move
+            currentTurn (int): the player to check for a win
+
+        Returns:
+            bool: whether there was a horizontal win
+        """
         horizontalStreak = 0
         for d in range (-3, 4):
             nx = column + d
@@ -220,8 +290,19 @@ class ConnectFour:
                 horizontalStreak = 0 
         return False
 
-    def __CheckLeftDiagonalWin(self, row, column, currentTurn) -> bool:
 
+    def __CheckLeftDiagonalWin(self, row, column, currentTurn) -> bool:
+        """Check whether a player has won a game in the bottom left to top right direction
+
+        Args:
+            row (int): the row of the last move
+            column (int): the column of the last move
+            currentTurn (int): the player to check for a win
+
+        Returns:
+            bool: whether there was a bottom left to top right win
+        """
+        
         leftDiagonalStreak = 0 
         for d in range (-3, 4):
             ny = row + d 
@@ -238,7 +319,18 @@ class ConnectFour:
                 leftDiagonalStreak = 0
         return False
 
+
     def __CheckRightDiagonalWin(self, row, column, currentTurn) -> bool:
+        """Check whether a player has won a game in the top left to bottom right direction
+
+        Args:
+            row (int): the row of the last move
+            column (int): the column of the last move
+            currentTurn (int): the player to check for a win
+
+        Returns:
+            bool: whether there was a top left to bottom right win
+        """
         rightDiagonalStreak = 0 
         for d in range (-3, 4):
             ny = row + d 
@@ -255,11 +347,34 @@ class ConnectFour:
                 rightDiagonalStreak = 0
         return False
 
+
     def __CheckWin(self, row, column, currentTurn) -> bool:
+        """Check whether a player has won a game in any direction
+
+        Args:
+            row (int): the row of the last move
+            column (int): the column of the last move
+            currentTurn (int): the player to check for a win
+
+        Returns:
+            bool: whether there was a win
+        """
         return self.__CheckVerticalWin (row, column, currentTurn) or self.__CheckHorizontalWin (row, column, currentTurn) or  self.__CheckLeftDiagonalWin (row, column, currentTurn) or self.__CheckRightDiagonalWin (row, column, currentTurn)
 
+
     def PlayToken(self, column) -> int:
-        
+        """Allow player to play the game
+
+        Args:
+            column (int): column index (1-based) to play
+
+        Raises:
+            ValueError: Check column validity
+            ValueError: Check if a column is full
+
+        Returns:
+            int: whether the player won the game following their move
+        """
         column -= 1
 
         if (column < 0 or column >= self.n):
@@ -277,11 +392,20 @@ class ConnectFour:
         self.turn = (self.turn + 1) % self.players
         return -1
     
+
     def PrintBoard(self):
+        """print the game board
+        """
         for row in reversed(range(self.m)):
             print (' '.join(str(self.board[col][row]) if len(self.board[col]) > row else '.' for col in range(self.n)))
 
+
 def play(bot):
+    """game driver
+
+    Args:
+        bot (bool): wether the game is against a bot or P vs. P
+    """
     cf = ConnectFour(6, 7, 2) 
     game_over = False
     current_player = 0  
