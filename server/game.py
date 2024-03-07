@@ -75,9 +75,9 @@ class ConnectFour:
                 return turn
         if all(len(column) == self.m for column in self.board):
             # game is a tie
-            return -1
+            return -2
         # game is not over
-        return -2 
+        return -1
     
 
     def three_token_heuristic (self, turn):
@@ -191,7 +191,7 @@ class ConnectFour:
 
         lastTurn = (self.turn-1+self.players) % self.players
         terminal_state = self.IsTerminalNode(lastTurn, lastRow, lastColumn)
-        if (depth == 0 or terminal_state != -2):
+        if (depth == 0 or terminal_state != -1):
             return self.EvaluateBoard(terminal_state)
 
         if isMaximizingPlayer: 
@@ -388,16 +388,20 @@ class ConnectFour:
 
         if (self.__CheckWin(row, column, self.turn)):
             return self.turn 
-
+        
+        outcome = self.IsTerminalNode(self.turn, row, column)
+        if (outcome != -1):
+            return outcome
+        
         self.turn = (self.turn + 1) % self.players
-        return -1
+        return outcome
     
 
-    def PrintBoard(self):
-        """print the game board
-        """
-        for row in reversed(range(self.m)):
-            print (' '.join(str(self.board[col][row]) if len(self.board[col]) > row else '.' for col in range(self.n)))
+def PrintBoard(board, m, n):
+    """print the game board
+    """
+    for row in reversed(range(m)):
+        print (' '.join(str(board[col][row]) if len(board[col]) > row else '.' for col in range(n)))
 
 
 def play(bot):
@@ -413,13 +417,16 @@ def play(bot):
     while not game_over:
         if current_player == 0:  
             print("Current board state:")
-            cf.PrintBoard()
+            PrintBoard(cf.board, cf.m, cf.n)
 
             column = int(input("Enter your move (1-7): ")) 
             try:
                 result = cf.PlayToken(column)
                 if result != -1:
-                    print(f"Player {result} wins!")
+                    if (result == -2):
+                        print ("Game is tied!")
+                    else:
+                        print(f"Player {result} wins!")
                     game_over = True
             except ValueError as e:
                 print(e)
@@ -427,13 +434,15 @@ def play(bot):
 
         elif (not bot):
             print("Current board state:")
-            cf.PrintBoard()
+            PrintBoard(cf.board, cf.m, cf.n)
             column = int(input("Enter your move (1-7): "))
             try: 
                 result = cf.PlayToken(column)
-                if result != -1:
+                if (result == -2):
+                    print ("Game is tied!")
+                else:
                     print(f"Player {result} wins!")
-                    game_over = True
+                game_over = True
             except ValueError as e: 
                 print(e)
                 continue  
@@ -450,7 +459,7 @@ def play(bot):
         current_player = (current_player+1) % 2
 
     print("Game over!")
-    cf.PrintBoard()
+    PrintBoard(cf.board, cf.m, cf.n)
     
 
 if __name__ == "__main__":
