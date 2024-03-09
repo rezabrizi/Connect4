@@ -27,7 +27,7 @@ class Connect4Game:
             current_row = len(board[col])
             empty_cells = self.game.m - current_row
             for _ in range(empty_cells):
-                board[col].append('X')  # Append -1 to simulate empty cells
+                board[col].append('.')  # Append -1 to simulate empty cells
         return board
 
 
@@ -39,7 +39,7 @@ def PrintBoard(board, m, n):
 
 def play_game(bot, depth):
     game_over = False
-    game = Connect4Game(depth)
+    game = Connect4Game(depth, True)
     while (not game_over):
         
         if game.player == 0:
@@ -49,7 +49,7 @@ def play_game(bot, depth):
             column = int(input("Enter your move (1-7): ")) 
 
             try:
-                result = game.player_move(column)
+                result = game.move(column)
                 if result != -1:
                     if (result == -2):
                         print ("Game is tied!")
@@ -67,7 +67,7 @@ def play_game(bot, depth):
             column = int(input("Enter your move (1-7): ")) 
 
             try:
-                result = game.player_move(column)
+                result = game.move(column)
                 if result != -1:
                     if (result == -2):
                         print ("Game is tied!")
@@ -95,6 +95,6 @@ def play_game(bot, depth):
     PrintBoard(game.get_board(), 6, 7)
     
 if __name__ == "__main__":
-    play_game(True, 7)
+    play_game(True, 8)
 
 

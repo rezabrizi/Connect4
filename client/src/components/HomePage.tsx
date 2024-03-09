@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import '../App.css';
 
 interface HomePageProps {
     onStartGame : (params: {mode: string; difficulty: number; }) => void; 
@@ -13,19 +14,39 @@ const HomePage: React.FC<HomePageProps> = ({ onStartGame }) => {
         onStartGame({mode: localMode, difficulty: localDifficulty}); 
     }
 
+    const handleDifficultyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = parseInt(e.target.value);
+        if (!isNaN(value) && value >= 1 && value <= 10) {
+            setLocalDifficulty(value);
+        }
+    };
+
     return (
-        <form onSubmit={handleSubmit}>
-            <div>
-                <label>
-                    Mode: 
-                    <select value={localMode} onChange={e =>setLocalMode(e.target.value)}>
+        <div className = "App">
+            <h1>Connect 4</h1>
+            <form className="homepage-form" onSubmit={handleSubmit}>
+                <div className="form-group">
+                    <label htmlFor="modeSelect">Mode:</label>
+                    <select id="modeSelect" value={localMode} onChange={e =>setLocalMode(e.target.value)}>
                         <option value="PvP"> Player vs Player</option>
-                        <option value="PvB"> Player vs Bit</option>
+                        <option value="PvB"> Player vs Bot</option>
                     </select>
-                </label>
-            </div>
-            <button type="submit">Start Game</button>
-        </form> 
+                </div>
+                <div className="form-group">
+                    <label htmlFor="difficultySelect">Difficulty (1-10):</label>
+                    <input
+                    type="range"
+                    id="difficultyInput"
+                    min={1}
+                    max={10}
+                    value={localDifficulty}
+                    onChange={handleDifficultyChange}
+                    />
+                    <span>{localDifficulty}</span>
+                </div>
+                <button type="submit">Start Game</button>
+            </form> 
+        </div>
     );
 };
 

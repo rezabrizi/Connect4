@@ -1,0 +1,60 @@
+
+h1 {
+  text-align: center;
+  color: blue;
+}
+
+.homepage-form {
+  max-width: 400 px;
+  margin: 0 auto; 
+  padding: 20px; 
+  background-color: #f8f9fa;
+  border: 1px solid #ced4da; 
+  border-radius: 5px; 
+}
+
+.form-group {
+  margin-bottom: 20px; 
+}
+
+label {
+  font-weight: bold;
+}
+
+select, input[type= "range"] {
+  width: 100%;
+  padding: 8px; 
+  border: 1px solid #ced4da; 
+  border-radius: 5px; 
+}
+
+.select-container select {
+  padding: 8px;
+  border: 1px solid #ced4da;
+  border-radius:5px;
+  text-align: center; 
+  text-align-last: center;
+  
+}
+
+button {
+border: 1px solid blue;
+color: blue;
+height: 30px;
+width: 100px;
+border-radius: 50px;
+margin: 0 auto;
+margin-bottom: 25px;
+text-align: center;
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+cursor: pointer;
+transition: background-color 0.5s, color 0.5s;
+}
+
+
+button:hover {
+  background-color: #0056b3;
+}

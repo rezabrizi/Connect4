@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
-import HomePage from './HomePage.tsx'
-import GameBoard from './GameBoard.tsx'
+import HomePage from './components/HomePage'
+import GameBoard from './components/GameBoard'
 
 interface StartGameParams {
     mode: string;
