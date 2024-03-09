@@ -15,6 +15,15 @@ const HomePage: React.FC<HomePageProps> = ({ onStartGame }) => {
 
     return (
         <form onSubmit={handleSubmit}>
+            <div>
+                <label>
+                    Mode: 
+                    <select value={localMode} onChange={e =>setLocalMode(e.target.value)}>
+                        <option value="PvP"> Player vs Player</option>
+                        <option value="PvB"> Player vs Bit</option>
+                    </select>
+                </label>
+            </div>
             <button type="submit">Start Game</button>
         </form> 
     );
