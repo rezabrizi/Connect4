@@ -28,8 +28,8 @@ const HomePage: React.FC<HomePageProps> = ({ onStartGame }) => {
                 <div className="form-group">
                     <label htmlFor="modeSelect">Mode:</label>
                     <select id="modeSelect" value={localMode} onChange={e =>setLocalMode(e.target.value)}>
-                        <option value="PvP"> Player vs Player</option>
-                        <option value="PvB"> Player vs Bot</option>
+                        <option value="PVP"> Player vs Player</option>
+                        <option value="PVB"> Player vs Bot</option>
                     </select>
                 </div>
                 <div className="form-group">

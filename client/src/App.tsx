@@ -1,6 +1,8 @@
 import React, {useState} from 'react';
 import HomePage from './components/HomePage'
 import GameBoard from './components/GameBoard'
+import './App.css';
+
 
 interface StartGameParams {
     mode: string;

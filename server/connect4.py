@@ -15,7 +15,7 @@ class Connect4Game:
 
     def bot_move(self):
         column = self.game.GetBestMove(self.depth)+1
-        return self.move(column)
+        return (column, self.move(column))
     
 
     def get_board(self):

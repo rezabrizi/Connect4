@@ -1,8 +1,17 @@
 from flask import Flask, request, jsonify, session
+from flask_cors import CORS, cross_origin
 import connect4
 import uuid
 
+def PrintBoard(board, m, n):
+    """print the game board
+    """
+    for row in reversed(range(m)):
+        print (' '.join(str(board[col][row]) if len(board[col]) > row else '.' for col in range(n)))
+
 app = Flask(__name__)
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 app.config['SECRET_KEY'] = 'dev' 
 
 # In-memory storage
@@ -30,10 +39,8 @@ def new_game():
     games[game_id] = connect4.Connect4Game(depth=depth, bot=bot)
     
     # Return the game ID and initial state
-    initial_board = games[game_id].get_board()
     return jsonify({
         'game_id': game_id,
-        'board': initial_board,
         'players': players,
         'difficulty': difficulty,
         'message': 'New game created successfully.'
@@ -44,14 +51,16 @@ def new_game():
 # if the game is with a bot then we will make a bot move too unless before the player has won
 @app.route("/make_move", methods=['POST'])
 def make_move():
+    print ("heeree")
     data = request.json
     column = data.get('column')
     is_bot_move = data.get('is_bot_move', False)
+    game_id = data.get('game_id')
 
-    if 'game_id' not in session or session['game_id'] not in games:
-        return jsonify({'error': 'Game not found'}), 404
+    #if 'game_id' not in session or session['game_id'] not in games:
+    #    return jsonify({'error': 'Game not found'}), 404
 
-    game_id = session['game_id']
+    #game_id = session['game_id']
     game = games[game_id]
 
     if is_bot_move:
@@ -64,22 +73,9 @@ def make_move():
         if not 0 < column <= 7:
             return jsonify({'error': 'Invalid column'}), 400
         outcome = game.move(column)
-
-    board = game.get_board()
-    return jsonify({'outcome': outcome, 'board': board, 'next_player': game.player})
-
-
-@app.route("/get_board", methods=['GET'])
-def get_board():
-    if 'game_id' not in session or session['game_id'] not in games:
-        return jsonify({'error': 'Game not found'}), 404
-
-    game_id = session['game_id']
-    game = games[game_id]
-
-    board = game.get_board()
-    return jsonify({'board': board})
-
+    
+    PrintBoard(game.get_board(), 6, 7)
+    return jsonify({'outcome': outcome, 'next_player': game.player})
 
 
 if __name__ == '__main__':

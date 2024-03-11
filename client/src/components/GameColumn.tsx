@@ -1,16 +1,31 @@
 import React from 'react'; 
-import { Row } from "src/components/interfaces/Row";
+import { Column } from 'src/components/interfaces/Column';
+
 
 interface Props {
-    row: Row
+    columnIndex: number;
+    column: Column; 
+    updateBoard: (columnIndex: number) => void;
+    isLoading: boolean;
 }
 
-const GameColumn: React.FC<Props> = ({ row }: Props): JSX.Element => {
-    return (
-        <div>
 
-        </div>
+const GameColumn: React.FC<Props> = ({columnIndex, column, updateBoard, isLoading}: Props): JSX.Element => {
+    
+    let tileStatus = "open";
+    if (column.player === 0){
+        tileStatus = "player0";
+    }
+    else if (column.player === 1){
+        tileStatus = "player1";
+    }
+    return (
+        <td> 
+            <div className='tile' onClick= {() => !isLoading && updateBoard(columnIndex)}>
+                <div className={[tileStatus, "circle"].join(" ")}></div>
+            </div>
+        </td>
     )
 }
 
-export default GameColumn; 
+export default GameColumn;
