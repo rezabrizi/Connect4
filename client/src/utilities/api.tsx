@@ -27,28 +27,48 @@ export const startNewGame = async (mode: string, difficulty: number) => {
 }
 
 
-export const makeMoveGame = async (game_id: string | null, column: number, is_bot_move: boolean) => {
-    try
-    {
-        const response = await fetch (`${API_BASE_URL}/make_move`, {
+export const makePlayerMove = async (game_id: string, column: number) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/make_player_move`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({game_id, column, is_bot_move}),
+            body: JSON.stringify({ game_id, column }),
         });
         
-        if (!response.ok){
-            throw new Error ('Network response was not ok'); 
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
         }
 
-        return response.json();
+        return await response.json();
+    } catch (error) {
+        console.error('Failed to make a player move', error);
+        throw error;
     }
-    catch (error)
-    {
-        console.error('Failed to make a move', error);
-        throw error
+};
+
+export const makeBotMove = async (game_id: string) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/make_bot_move`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ game_id }),
+        });
+        
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Failed to make a bot move', error);
+        throw error;
     }
-}
+};
+
+
 
 

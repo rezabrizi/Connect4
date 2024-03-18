@@ -5,97 +5,136 @@ import { Row } from "src/components/interfaces/Row";
 import GameRow from "src/components/GameRow"; 
 
 
-import { startNewGame, makeMoveGame } from 'src/utilities/api'; 
+import { startNewGame, makePlayerMove, makeBotMove } from 'src/utilities/api'; 
 
 
 interface GameBoardProps {
     mode: string;
     difficulty: number; 
-}
+  }
+  
 
-const GameBoard: React.FC<GameBoardProps> = ({ mode, difficulty}) => {
+  const GameBoard: React.FC<GameBoardProps> = ({ mode, difficulty }) => {
 
     const initialBoard: Board = {
-        rows: Array.from({ length: c4Rows }, (_, i) => ({
-          columns: Array.from({ length: c4Columns }, (_, i) => ({ player: null })),
-        })),
+      rows: Array.from({ length: c4Rows }, () => ({
+        columns: Array.from({ length: c4Columns }, () => ({ player: null })),
+      })),
     };
+  
     const [board, setBoard] = useState<Board>(initialBoard);
     const [currentPlayer, setCurrentPlayer] = useState<number>(0); 
     const [gameId, setGameId] = useState<string | null>(null); 
-    const [isLoading, setIsLoading] = useState(false);
-
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+  
     useEffect(() => {
-        const initializeGame = async () => {
-            try {
-                const gameData = await startNewGame(mode, difficulty);
-                console.log(gameData.game_id);
-                setGameId(gameData.game_id);
-            } catch (error) {
-                console.error("Failed to start new game:", error); 
-            }
-        };
-
-        initializeGame();
-
-    }, [mode, difficulty]);
-
-
-    const updateBackEnd = async (columnIndex: number) => {
-        try {
-            console.log (gameId); 
-            console.log(columnIndex);
-            const moveData = await makeMoveGame(gameId, columnIndex, (currentPlayer === 1 && mode === 'PVB') ? true : false);
-            
-            return moveData.outcome; 
-        } catch (error)
-        {
-            console.error("Failed to make a move", error);
-        }
-    };
-    
-    const updateBoard = async (columnIndex: number): Promise<void> => {
+      const initializeGame = async () => {
         setIsLoading(true);
-        let boardCopy: Board = {
-            rows: board.rows.map(row => ({
-                columns: row.columns.map(column => ({
-                    ...column
-                }))
-            }))
-        };
-
-        let isColumnFilled = false;
-        for (let i = 5; i >= 0; i--) {
-            if (boardCopy.rows[i].columns[columnIndex].player === null) {
-                boardCopy.rows[i].columns[columnIndex].player = currentPlayer;
-                isColumnFilled = false;
-                break;
-            }
-        }
-
-        if (!isColumnFilled) {
-            // Update the board state before making the backend call
-            setBoard({...boardCopy});
-
-            // Now, make the backend call to update and check the game's state
-            const outcome = await updateBackEnd(columnIndex);
-
-            if (outcome === 0 || outcome === 1) {
-                // Game is won by currentPlayer
-                alert(`Game won by Player ${outcome}`);
-                // Here you might want to reset the game or disable further moves
-            } else if (outcome === -2) {
-                // Game is tied
-                alert('Game is tied');
-                // Handle tie situation
-            } else {
-                // Game continues, toggle the current player
-                setCurrentPlayer(currentPlayer === 0 ? 1 : 0);
-            }
+        try {
+          const gameData = await startNewGame(mode, difficulty);
+          setGameId(gameData.game_id);
+        } catch (error) {
+          console.error("Failed to start new game:", error); 
         }
         setIsLoading(false);
-};
+      };
+  
+      initializeGame();
+    }, [mode, difficulty]);
 
+    const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+
+    useEffect(() => {
+      // Assuming `0` is the player and `1` is the bot in a PvB mode.
+      const makeBotMoveIfNeeded = async () => {
+        if (mode === 'PVB' && currentPlayer === 1 && !isLoading) {
+          await botMove();
+        }
+      };
+  
+      makeBotMoveIfNeeded();
+    }, [currentPlayer, mode, isLoading])
+    
+  
+    const playerMove = async (columnIndex: number) => {
+      if (!gameId || isLoading) return;
+      setIsLoading(true);
+  
+      try {
+        const moveData = await makePlayerMove(gameId, columnIndex);
+        if (moveData.error) {
+          alert(moveData.error);
+          setIsLoading(false);
+          return;
+        }
+        console.log(`Player Move: ${currentPlayer}\n${moveData.row} \n${moveData.column}\n${moveData.outcome}`);
+        await updateBoard(moveData.row, columnIndex);
+        console.log(`Turn ${currentPlayer}`);
+  
+        await delay(200);
+
+        if (moveData.outcome === 0 || moveData.outcome === 1) {
+          alert(`Player ${moveData.outcome + 1} wins!`);
+          resetGame();
+          return;
+        } else if (moveData.outcome === -2) {
+          alert("It's a tie!");
+          resetGame();
+          return;
+        } 
+  
+        // If PvB and game continues, trigger bot move
+        /**
+        if (mode === 'PVB') {
+          await botMove();
+        } */
+      } catch (error) {
+        console.error("Failed to make a player move", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+  
+    const botMove = async () => {
+      if (!gameId) return;
+      try {
+        const moveData = await makeBotMove(gameId);
+        if (moveData.error) {
+          alert(moveData.error);
+          return;
+        }
+        console.log(`Bot Move: ${currentPlayer} \n${moveData.row} \n${moveData.column}\n${moveData.outcome}`);
+  
+        await updateBoard(moveData.row, moveData.column); // Update board with bot's move
+        
+        await delay(200);
+
+        if (moveData.outcome === 0 || moveData.outcome === 1) {
+          alert(`Player ${moveData.outcome + 1} wins!`);
+          resetGame();
+        } else if (moveData.outcome === -2) {
+          alert("It's a tie!");
+          resetGame();
+        }
+      } catch (error) {
+        console.error("Failed to make a bot move", error);
+      }
+    };
+  
+    const updateBoard = async (rowIndex: number, columnIndex: number) => {
+      let newBoard = { ...board };
+      newBoard.rows[rowIndex].columns[columnIndex].player = currentPlayer;
+      setBoard(newBoard);
+      setCurrentPlayer((currentPlayer + 1) % 2);
+    };
+  
+    const resetGame = () => {
+      setBoard(initialBoard);
+      setCurrentPlayer(0);
+      setIsLoading(false);
+    };
+  
     
 
     return (
@@ -105,7 +144,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ mode, difficulty}) => {
                 <tbody>
                 {board.rows.map(
                     (row:Row, i: number): JSX.Element => (
-                    <GameRow key={i} row={row} updateBoard={updateBoard} isLoading={isLoading}/>
+                    <GameRow key={i} row={row} playerMove={playerMove} isLoading={isLoading}/>
                     )
                     )}
                 </tbody>

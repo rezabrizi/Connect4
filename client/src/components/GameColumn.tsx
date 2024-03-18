@@ -5,12 +5,12 @@ import { Column } from 'src/components/interfaces/Column';
 interface Props {
     columnIndex: number;
     column: Column; 
-    updateBoard: (columnIndex: number) => void;
+    playerMove: (columnIndex: number) => void;
     isLoading: boolean;
 }
 
 
-const GameColumn: React.FC<Props> = ({columnIndex, column, updateBoard, isLoading}: Props): JSX.Element => {
+const GameColumn: React.FC<Props> = ({columnIndex, column, playerMove, isLoading}: Props): JSX.Element => {
     
     let tileStatus = "open";
     if (column.player === 0){
@@ -21,7 +21,7 @@ const GameColumn: React.FC<Props> = ({columnIndex, column, updateBoard, isLoadin
     }
     return (
         <td> 
-            <div className='tile' onClick= {() => !isLoading && updateBoard(columnIndex)}>
+            <div className='tile' onClick= {() => !isLoading && playerMove(columnIndex)}>
                 <div className={[tileStatus, "circle"].join(" ")}></div>
             </div>
         </td>

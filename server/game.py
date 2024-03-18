@@ -166,7 +166,7 @@ class ConnectFour:
             return 1000
         elif outcome == 0:
             return -1000
-        elif outcome == -1:
+        elif outcome == -2:
             return 0
         else: 
             maximizer = self.three_token_heuristic (1)
@@ -375,7 +375,6 @@ class ConnectFour:
         Returns:
             int: whether the player won the game following their move
         """
-        column -= 1
 
         if (column < 0 or column >= self.n):
             raise ValueError("Enter a valid column")
@@ -421,7 +420,7 @@ def play(bot):
 
             column = int(input("Enter your move (1-7): ")) 
             try:
-                result = cf.PlayToken(column)
+                result = cf.PlayToken(column-1)
                 if result != -1:
                     if (result == -2):
                         print ("Game is tied!")
@@ -449,8 +448,7 @@ def play(bot):
         
         else:
             print("Bot is thinking...")
-            best_move = cf.GetBestMove(9)
-            best_move += 1
+            best_move = cf.GetBestMove(7)
             result = cf.PlayToken(best_move)
             print(f"Bot played in column {best_move}")
             if result != -1:

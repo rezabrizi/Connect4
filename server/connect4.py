@@ -6,16 +6,21 @@ class Connect4Game:
         self.player = 0 
         self.depth = depth
         self.bot = bot
+        self.game_over = False
 
     def move (self, column):
         outcome =  self.game.PlayToken(column)
+        if (outcome != -1):
+            self.game_over = True
+        row_idx = len(self.game.board[column])-1
         self.player = (self.player+1) % 2
-        return outcome
+        return outcome, row_idx
         
 
     def bot_move(self):
-        column = self.game.GetBestMove(self.depth)+1
-        return (column, self.move(column))
+        column = self.game.GetBestMove(self.depth)
+        outcome, row_idx  = self.move(column)
+        return (outcome, column, row_idx)
     
 
     def get_board(self):
@@ -49,7 +54,7 @@ def play_game(bot, depth):
             column = int(input("Enter your move (1-7): ")) 
 
             try:
-                result = game.move(column)
+                result, _ = game.move(column-1)
                 if result != -1:
                     if (result == -2):
                         print ("Game is tied!")
@@ -67,7 +72,7 @@ def play_game(bot, depth):
             column = int(input("Enter your move (1-7): ")) 
 
             try:
-                result = game.move(column)
+                result, _ = game.move(column-1)
                 if result != -1:
                     if (result == -2):
                         print ("Game is tied!")
@@ -80,7 +85,7 @@ def play_game(bot, depth):
         
         else:
             try:
-                result = game.bot_move()
+                result, _, __ = game.bot_move()
                 if result != -1:
                     if (result == -2):
                         print ("Game is tied!")
@@ -95,6 +100,6 @@ def play_game(bot, depth):
     PrintBoard(game.get_board(), 6, 7)
     
 if __name__ == "__main__":
-    play_game(True, 8)
+    play_game(True, 7)
 
 
