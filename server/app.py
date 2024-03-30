@@ -72,8 +72,6 @@ def make_bot_move():
         return jsonify({'error': 'Not the bot turn'}), 400
     
     outcome, column, row = game.bot_move()
-    PrintBoard(game.get_board(), 6, 7)
-    print (f"BOT----column {column}----row {row}----outcome {outcome}")
 
     return jsonify({'outcome': outcome, 'row': 5-row, 'column': column, 'next_player': game.player})
     
