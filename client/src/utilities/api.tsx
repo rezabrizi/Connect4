@@ -1,5 +1,5 @@
 
-const API_BASE_URL = 'http://146.190.170.64';
+const API_BASE_URL = 'http://146.190.170.64:8001';
 
 
 export const startNewGame = async (mode: string, difficulty: number) => {
