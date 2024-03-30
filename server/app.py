@@ -11,7 +11,7 @@ def PrintBoard(board, m, n):
 app = Flask(__name__)
 CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
-app.config['SECRET_KEY'] = 'dev'
+
 
 # In-memory storage
 games = {}
@@ -78,4 +78,4 @@ def make_bot_move():
     
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)
