@@ -11,10 +11,11 @@ import { startNewGame, makePlayerMove, makeBotMove } from 'src/utilities/api';
 interface GameBoardProps {
     mode: string;
     difficulty: number; 
+    onEndGame:()=>void; 
   }
   
 
-  const GameBoard: React.FC<GameBoardProps> = ({ mode, difficulty }) => {
+  const GameBoard: React.FC<GameBoardProps> = ({ mode, difficulty, onEndGame }) => {
 
     const initialBoard: Board = {
       rows: Array.from({ length: c4Rows }, () => ({
@@ -83,12 +84,6 @@ interface GameBoardProps {
           resetGame();
           return;
         } 
-  
-        // If PvB and game continues, trigger bot move
-        /**
-        if (mode === 'PVB') {
-          await botMove();
-        } */
       } catch (error) {
         console.error("Failed to make a player move", error);
       } finally {
@@ -99,6 +94,7 @@ interface GameBoardProps {
     const botMove = async () => {
       if (!gameId) return;
       try {
+        setIsLoading(true);
         const moveData = await makeBotMove(gameId);
         if (moveData.error) {
           alert(moveData.error);
@@ -106,7 +102,7 @@ interface GameBoardProps {
         }
         console.log(`Bot Move: ${currentPlayer} \n${moveData.row} \n${moveData.column}\n${moveData.outcome}`);
   
-        await updateBoard(moveData.row, moveData.column); // Update board with bot's move
+        await updateBoard(moveData.row, moveData.column);
         
         await delay(200);
 
@@ -119,6 +115,8 @@ interface GameBoardProps {
         }
       } catch (error) {
         console.error("Failed to make a bot move", error);
+      } finally {
+        setIsLoading(false);
       }
     };
   
@@ -133,6 +131,7 @@ interface GameBoardProps {
       setBoard(initialBoard);
       setCurrentPlayer(0);
       setIsLoading(false);
+      onEndGame(); 
     };
   
     

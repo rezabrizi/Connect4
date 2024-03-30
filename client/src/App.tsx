@@ -20,12 +20,16 @@ function App() {
         setGameStarted(true);
     };
 
+    const onEndGame = () => {
+        setGameStarted(false); 
+    }
+
     return (
         <div className="App">
             {!gameStarted ? (
                 <HomePage onStartGame={onStartGame} />
             ) : (
-                <GameBoard mode={mode} difficulty={difficulty} />
+                <GameBoard mode={mode} difficulty={difficulty} onEndGame={onEndGame}/>
             )}
         </div>
     );
