@@ -1,5 +1,5 @@
 
-const API_BASE_URL = 'https://146.190.170.64:443';
+const API_BASE_URL = 'https://api.connnectfour.com';
 
 
 export const startNewGame = async (mode: string, difficulty: number) => {
